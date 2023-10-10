@@ -11,7 +11,7 @@ export default function Header() {
 					</h1>
 				</Link>
 
-				<form className='bg-slate-100 rounded-lg flex items-center p-3'>
+				<form className='bg-slate-100 rounded-lg flex items-center p-1 sm:p-2'>
 					<input
 						className='bg-transparent focus:outline-none w-24 sm:w-64'
 						type='text'
