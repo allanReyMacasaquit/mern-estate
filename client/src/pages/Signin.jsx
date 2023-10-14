@@ -1,18 +1,21 @@
 import { useState } from 'react'; // Importing React dependencies for state management
 import { Link, useNavigate } from 'react-router-dom'; // Importing React Router for navigation
+import { useDispatch, useSelector } from 'react-redux';
+import {
+	signInStart,
+	signInSuccess,
+	signInFailure,
+} from '../redux/user/userSlice.js';
 
 export default function Signin() {
 	// State to manage form data
 	const [formData, setFormData] = useState({});
 
-	// State to manage error messages
-	const [error, setError] = useState(null);
-
-	// State to manage loading state
-	const [loading, setLoading] = useState(false);
+	const { loading, error } = useSelector((state) => state.user);
 
 	// Get a navigation function for redirects
 	const navigate = useNavigate();
+	const dispatch = useDispatch();
 
 	// Function to handle user input changes and update the form data state
 	const handleChange = (e) => {
@@ -27,8 +30,7 @@ export default function Signin() {
 		e.preventDefault();
 
 		try {
-			setLoading(true); // Set loading state to true during the fetch request
-
+			dispatch(signInStart());
 			// Send a POST request to the server
 			const res = await fetch('/api/auth/signin', {
 				method: 'POST',
@@ -43,21 +45,20 @@ export default function Signin() {
 
 			// Check if the signup was not successful
 			if (data.success === false) {
-				setError(data.message); // Set an error message
-				setLoading(false);
+				dispatch(signInFailure(data.message)); // Dispatch signInFailure with the error message
 				return;
 			}
 
-			setLoading(false); // Set loading state back to false
-			setError(null); // Clear any previous error messages
+			dispatch(signInSuccess(data));
 			navigate('/'); // Redirect to home page
 		} catch (error) {
 			// Handle errors from the fetch request
 			console.error('An error occurred:', error);
-			setError(
-				'An error occurred while making the request. Please try again later'
+			dispatch(
+				signInFailure(
+					'An error occurred while making the request. Please try again later'
+				)
 			);
-			setLoading(false);
 		}
 	};
 
