@@ -106,7 +106,13 @@ export default function Signup() {
 			</div>
 
 			{/* Display error messages if there are any */}
-			{error && <p className='text-red-500 mt-5'>{error}</p>}
+			<div className='flex justify-center '>
+				{error && (
+					<p className='text-red-500 mt-5 text-lg p-2 rounded-lg uppercase  shadow-sm shadow-slate-500 font-bold'>
+						{error}
+					</p>
+				)}
+			</div>
 		</div>
 	);
 }

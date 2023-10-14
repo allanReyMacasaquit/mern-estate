@@ -20,7 +20,7 @@ export const signup = async (req, res, next) => {
 		res.status(201).json('User created successfully!');
 	} catch (error) {
 		// Pass any errors to the error handler
-		next(error);
+		next(errorHandler(400, 'Duplicate / Invalid Username or/ Email'));
 	}
 };
 
