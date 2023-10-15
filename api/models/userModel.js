@@ -19,6 +19,11 @@ const userSchema = new mongoose.Schema(
 			type: String, // Data type for the 'password' field (String)
 			required: true, // It is required, must be provided
 		},
+		photo: {
+			type: String, // Data type for the 'photo' field (String)
+			default:
+				'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Windows_10_Default_Profile_Picture.svg/1200px-Windows_10_Default_Profile_Picture.svg.png',
+		},
 	},
 	{ timestamps: true } // Include timestamps for 'created at' and 'updated at' fields
 );

@@ -73,3 +73,87 @@ export const signin = async (req, res, next) => {
 		return res.status(500).json({ message: 'Internal Server Error' });
 	}
 };
+
+export const google = async (req, res, next) => {
+	try {
+		const user = await User.findOne({ email: req.body.email });
+		if (user) {
+			// Create a payload for the JWT token without the password
+			const tokenPayload = {
+				userId: user._id,
+				email: user.email,
+			};
+
+			// Create a JWT token
+			const token = jwt.sign(tokenPayload, process.env.JWT_SECRET_KEY, {
+				expiresIn: '1h',
+			});
+
+			// Set the token as a cookie in the response
+			res.cookie('jwtToken', token, {
+				httpOnly: true,
+				secure: true,
+				maxAge: 3600000,
+				// Other cookie options can be set as needed
+			});
+
+			// Create a user object without the password field
+			const userWithoutPassword = { ...user.toObject() };
+			delete userWithoutPassword.password;
+
+			// Send a success response without the password
+			res.status(200).json({
+				message: 'Sign-in successful',
+				user: userWithoutPassword,
+			});
+		} else {
+			const generatedPassword =
+				Math.random().toString(36).slice(-8) +
+				Math.random().toString(36).slice(-8);
+
+			// Hash the provided password for security
+			const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+
+			const newUser = new User({
+				username:
+					req.body.name.split(' ').join('').toLowerCase() +
+					Math.random().toString(36).slice(-8),
+				email: req.body.email,
+				password: hashedPassword,
+				photo: req.body.photo,
+			});
+			await newUser.save();
+
+			const tokenPayload = {
+				userId: user._id,
+				email: user.email,
+			};
+
+			// Create a JWT token
+			const token = jwt.sign(tokenPayload, process.env.JWT_SECRET_KEY, {
+				expiresIn: '1h',
+			});
+
+			// Set the token as a cookie in the response
+			res.cookie('jwtToken', token, {
+				httpOnly: true,
+				secure: true,
+				maxAge: 3600000,
+				// Other cookie options can be set as needed
+			});
+
+			// Create a user object without the password field
+			const userWithoutPassword = { ...user.toObject() };
+			delete userWithoutPassword.password;
+
+			// Send a success response without the password
+			res.status(200).json({
+				message: 'Sign-in successful',
+				user: userWithoutPassword,
+			});
+		}
+	} catch (error) {
+		// Pass any errors to the error handler
+		next(error);
+	}
+};

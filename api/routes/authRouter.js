@@ -2,7 +2,7 @@
 import express from 'express';
 // Import the 'signin' and 'signup' functions from the 'authController'
 
-import { signin, signup } from '../controllers/authContoller.js';
+import { google, signin, signup } from '../controllers/authContoller.js';
 
 // Create an instance of an Express router
 const authRouter = express.Router();
@@ -11,6 +11,8 @@ const authRouter = express.Router();
 authRouter.post('/signin', signin);
 // Define a route for handling user registration (sign-up)
 authRouter.post('/signup', signup);
+// Define a route for handling user registration (sign-up)
+authRouter.post('/google', google);
 
 // Export the 'authRouter' for use in other parts of the application
 export default authRouter;

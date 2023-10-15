@@ -1,5 +1,6 @@
 import { useState } from 'react'; // Importing React dependencies for state management
 import { Link, useNavigate } from 'react-router-dom'; // Importing React Router for navigation
+import OAuth from '../components/OAuth';
 
 export default function Signup() {
 	// State to manage form data
@@ -95,6 +96,7 @@ export default function Signup() {
 				>
 					{loading ? 'Loading...' : 'Sign Up'}
 				</button>
+				<OAuth />
 			</form>
 
 			{/* Link to sign-in page */}

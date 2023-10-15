@@ -6,6 +6,7 @@ import {
 	signInSuccess,
 	signInFailure,
 } from '../redux/user/userSlice.js';
+import OAuth from '../components/OAuth.jsx';
 
 export default function Signin() {
 	// State to manage form data
@@ -89,6 +90,7 @@ export default function Signin() {
 				>
 					{loading ? 'Loading...' : 'Sign In'}
 				</button>
+				<OAuth />
 			</form>
 
 			{/* Link to sign-in page */}
