@@ -103,7 +103,7 @@ export default function Signup() {
 			<div className='mt-5 flex gap-2'>
 				<p>Have an account?</p>
 				<Link to='/sign-in'>
-					<span className='text-blue-700 uppercase'>Sign in</span>
+					<span className='text-blue-700 capitalize'>Sign in</span>
 				</Link>
 			</div>
 

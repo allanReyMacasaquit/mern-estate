@@ -42,118 +42,114 @@ export const signin = async (req, res, next) => {
 			return next(errorHandler(401, 'Unauthorized'));
 		}
 
-		// Create a payload for the JWT token without the password
-		const tokenPayload = {
-			userId: user._id,
-			email: user.email,
-		};
-
-		// Create a JWT token
-		const token = jwt.sign(tokenPayload, process.env.JWT_SECRET_KEY, {
-			expiresIn: '1h',
-		});
+		// Create a JWT token for authentication
+		const token = createTokenSignin(user);
 
 		// Set the token as a cookie in the response
-		res.cookie('jwtToken', token, {
-			httpOnly: true,
-			secure: true,
-			maxAge: 3600000,
-			// Other cookie options can be set as needed
-		});
+		setTokenCookie(res, token);
 
-		// Create a user object without the password field
-		const userWithoutPassword = { ...user.toObject() };
-		delete userWithoutPassword.password;
-		// Send a success response without the password
+		// Send a success response with user data (excluding the password)
 		res.status(200).json({
 			message: 'Sign-in successful',
-			user: userWithoutPassword,
+			user: sanitizeUserSignin(user),
 		});
-	} catch (err) {
-		return res.status(500).json({ message: 'Internal Server Error' });
+	} catch (error) {
+		return next(errorHandler(500, 'Internal Server Error'));
 	}
+};
+
+// Helper functions
+const createTokenSignin = (user) => {
+	const tokenPayload = {
+		userId: user._id,
+		email: user.email,
+	};
+	return jwt.sign(tokenPayload, process.env.JWT_SECRET_KEY, {
+		expiresIn: '1h',
+	});
+};
+
+const setTokenCookie = (res, token) => {
+	res.cookie('jwtToken', token, {
+		httpOnly: true,
+		secure: true,
+		maxAge: 3600000,
+		// Other cookie options can be set as needed
+	});
+};
+
+const sanitizeUserSignin = (user) => {
+	const userWithoutPassword = { ...user.toObject() };
+	delete userWithoutPassword.password;
+	return userWithoutPassword;
 };
 
 export const google = async (req, res, next) => {
 	try {
 		const user = await User.findOne({ email: req.body.email });
+
 		if (user) {
-			// Create a payload for the JWT token without the password
-			const tokenPayload = {
-				userId: user._id,
-				email: user.email,
-			};
+			// User exists, create and send a JWT token
+			const token = createToken(user);
 
-			// Create a JWT token
-			const token = jwt.sign(tokenPayload, process.env.JWT_SECRET_KEY, {
-				expiresIn: '1h',
-			});
-
-			// Set the token as a cookie in the response
-			res.cookie('jwtToken', token, {
-				httpOnly: true,
-				secure: true,
-				maxAge: 3600000,
-				// Other cookie options can be set as needed
-			});
-
-			// Create a user object without the password field
-			const userWithoutPassword = { ...user.toObject() };
-			delete userWithoutPassword.password;
-
-			// Send a success response without the password
+			// Send a success response with the token and user data
 			res.status(200).json({
 				message: 'Sign-in successful',
-				user: userWithoutPassword,
+				token,
+				user: sanitizeUser(user),
 			});
 		} else {
-			const generatedPassword =
-				Math.random().toString(36).slice(-8) +
-				Math.random().toString(36).slice(-8);
-
-			// Hash the provided password for security
-			const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+			// User does not exist, create a new user
+			const generatedPassword = generateRandomPassword();
+			const hashedPassword = hashPassword(generatedPassword);
 
 			const newUser = new User({
-				username:
-					req.body.name.split(' ').join('').toLowerCase() +
-					Math.random().toString(36).slice(-8),
+				username: req.body.name,
 				email: req.body.email,
 				password: hashedPassword,
 				photo: req.body.photo,
 			});
 			await newUser.save();
 
-			const tokenPayload = {
-				userId: user._id,
-				email: user.email,
-			};
+			// Create and send a JWT token for the new user
+			const token = createToken(newUser);
 
-			// Create a JWT token
-			const token = jwt.sign(tokenPayload, process.env.JWT_SECRET_KEY, {
-				expiresIn: '1h',
-			});
-
-			// Set the token as a cookie in the response
-			res.cookie('jwtToken', token, {
-				httpOnly: true,
-				secure: true,
-				maxAge: 3600000,
-				// Other cookie options can be set as needed
-			});
-
-			// Create a user object without the password field
-			const userWithoutPassword = { ...user.toObject() };
-			delete userWithoutPassword.password;
-
-			// Send a success response without the password
-			res.status(200).json({
-				message: 'Sign-in successful',
-				user: userWithoutPassword,
+			// Send a success response with the token and user data
+			res.status(201).json({
+				message: 'User created successfully',
+				token,
+				user: sanitizeUser(newUser),
 			});
 		}
 	} catch (error) {
-		// Pass any errors to the error handler
+		// Handle errors appropriately, you can create a custom error handling middleware
 		next(error);
 	}
+};
+
+// Helper functions
+const createToken = (user) => {
+	const tokenPayload = {
+		userId: user._id,
+		email: user.email,
+	};
+	return jwt.sign(tokenPayload, process.env.JWT_SECRET_KEY, {
+		expiresIn: '1h',
+	});
+};
+
+const sanitizeUser = (user) => {
+	const userWithoutPassword = { ...user.toObject() };
+	delete userWithoutPassword.password;
+	return userWithoutPassword;
+};
+
+const generateRandomPassword = () => {
+	return (
+		Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8)
+	);
+};
+
+const hashPassword = (password) => {
+	return bcryptjs.hashSync(password, 10);
 };

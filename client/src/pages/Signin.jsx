@@ -97,7 +97,7 @@ export default function Signin() {
 			<div className='mt-5 flex gap-2'>
 				<p>Dont have an account?</p>
 				<Link to='/sign-up'>
-					<span className='text-blue-700'>Sign Up</span>
+					<span className='text-blue-700 capitalize'>sign up</span>
 				</Link>
 			</div>
 

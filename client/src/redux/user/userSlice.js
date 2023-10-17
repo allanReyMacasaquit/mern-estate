@@ -25,7 +25,6 @@ const userSlice = createSlice({
 		// Reducer for setting the loading state
 		signInStart: (state) => {
 			state.loading = true;
-			state.error = null;
 		},
 	},
 });
