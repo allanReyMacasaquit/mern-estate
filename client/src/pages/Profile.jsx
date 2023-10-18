@@ -1,46 +1,46 @@
-import { useSelector } from 'react-redux';
-import { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux'; // Import useSelector from 'react-redux' for accessing the Redux state.
+import { useEffect, useRef, useState } from 'react'; // Import useEffect, useRef, and useState from 'react' for managing state and side effects.
 import {
 	getDownloadURL,
 	getStorage,
 	ref,
 	uploadBytesResumable,
-} from 'firebase/storage';
+} from 'firebase/storage'; // Import Firebase storage functions.
 
-import { app } from '../firebase.js';
+import { app } from '../firebase.js'; // Import the Firebase configuration.
 
 export default function Profile() {
-	const [formData, setFormData] = useState({});
-	const [fileUploadError, setfileUploadError] = useState(false);
-	const [filePercent, setfilePercent] = useState(0);
-	const [file, setFile] = useState(undefined);
-	const fileRef = useRef(null);
-	const { user } = useSelector((state) => state.user);
-	const current = user?.user?.user;
+	const [formData, setFormData] = useState({}); // Initialize state for form data.
+	const [fileUploadError, setFileUploadError] = useState(false); // Initialize state for file upload errors.
+	const [filePercent, setFilePercent] = useState(0); // Initialize state for file upload progress.
+	const [file, setFile] = useState(undefined); // Initialize state for the selected file.
+	const fileRef = useRef(null); // Create a ref for the file input element.
+	const { user } = useSelector((state) => state.user); // Use useSelector to access user data from the Redux state.
+	const current = user?.user?.user; // Initialize the 'current' variable with user data.
 
 	const handleFileUpload = (file) => {
-		const storage = getStorage(app);
-		const filename = new Date().getTime() + file.name; // Use 'file.name' as part of the filename
-		const storageRef = ref(storage, filename);
-		const uploadTask = uploadBytesResumable(storageRef, file);
+		const storage = getStorage(app); // Create a reference to Firebase storage.
+		const filename = new Date().getTime() + file.name; // Generate a unique filename using the timestamp and the original file name.
+		const storageRef = ref(storage, filename); // Create a storage reference with the generated filename.
+		const uploadTask = uploadBytesResumable(storageRef, file); // Upload the file to storage using uploadBytesResumable.
 
 		uploadTask.on(
 			'state_changed',
 			(snapshot) => {
 				const progress =
-					(snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-				setfilePercent(Math.round(progress));
+					(snapshot.bytesTransferred / snapshot.totalBytes) * 100; // Calculate the upload progress.
+				setFilePercent(Math.round(progress)); // Update the file upload progress state.
 			},
 			(error) => {
-				// Handle any upload errors here
+				// Handle any upload errors here.
 				console.error('Upload error:', error);
-				setfileUploadError(true);
+				setFileUploadError(true); // Set the file upload error state.
 			},
 			() => {
-				// Upload completed successfully
+				// Upload completed successfully.
 				console.log('Upload completed');
 				getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
-					setFormData({ ...formData, photo: downloadUrl });
+					setFormData({ ...formData, photo: downloadUrl }); // Set the 'photo' property in the form data.
 				});
 			}
 		);
@@ -48,7 +48,7 @@ export default function Profile() {
 
 	useEffect(() => {
 		if (file) {
-			handleFileUpload(file);
+			handleFileUpload(file); // Trigger the file upload function when the 'file' state changes.
 		}
 	}, [file]);
 
@@ -59,7 +59,7 @@ export default function Profile() {
 			</h1>
 			<form className='flex flex-col gap-4'>
 				<input
-					onChange={(e) => setFile(e.target.files[0])}
+					onChange={(e) => setFile(e.target.files[0])} // Set the 'file' state when a file is selected.
 					type='file'
 					ref={fileRef}
 					hidden
@@ -69,7 +69,7 @@ export default function Profile() {
 					className='rounded-full object-cover h-24 w-24 mt-4 self-center cursor-pointer'
 					src={formData.photo || current.photo}
 					alt='profile'
-					onClick={() => fileRef.current.click()}
+					onClick={() => fileRef.current.click()} // Trigger the file input when the image is clicked.
 				/>
 				<p className='text-center'>
 					{fileUploadError ? (

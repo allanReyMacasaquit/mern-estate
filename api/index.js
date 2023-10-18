@@ -4,6 +4,7 @@ import mongoose from 'mongoose'; // Mongoose is an ODM (Object Data Modeling) li
 import dotenv from 'dotenv'; // Dotenv is used to load environment variables from a .env file
 import userRouter from './routes/userRouter.js'; // Import a user-related router
 import authRouter from './routes/authRouter.js'; // Import an authentication-related router
+import cookieParser from 'cookie-parser';
 dotenv.config(); // Load environment variables from a .env file into process.env
 
 // Connect to the MongoDB database using Mongoose
@@ -26,7 +27,7 @@ app.listen(3000, () => {
 
 // Parse incoming JSON data using the 'json' middleware
 app.use(express.json());
-
+app.use(cookieParser());
 // Use the 'authRouter' for handling routes starting with '/api/auth'
 app.use('/api/auth', authRouter);
 // Use the 'userRouter' for handling routes starting with '/api/user'
