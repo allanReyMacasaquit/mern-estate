@@ -7,6 +7,8 @@ import {
 import {
 	updateUserSuccess,
 	updateUserFailure,
+	deleteUserFailure,
+	deleteUserSuccess,
 } from '../redux/user/userSlice.js';
 import { useSelector } from 'react-redux'; // Import useSelector from 'react-redux' for accessing the Redux state.
 import { useEffect, useRef, useState } from 'react'; // Import useEffect, useRef, and useState from 'react' for managing state and side effects.
@@ -22,6 +24,7 @@ export default function Profile() {
 	const fileRef = useRef(null); // Create a ref for the file input element.
 	const [updateSuccess, setUpdateSuccess] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const [isDelete, setIsDelete] = useState(false);
 	const [error, setError] = useState(false);
 	const { user } = useSelector((state) => state.user); // Use useSelector to access user data from the Redux state.
 	const current = user?.user?.user; // Initialize the 'current' variable with user data.
@@ -116,6 +119,27 @@ export default function Profile() {
 		}
 	}, [filePercent]);
 
+	const handleDeleteUser = async () => {
+		try {
+			setIsDelete(true);
+			const res = await fetch(`/api/user/delete/${current._id}`, {
+				method: 'DELETE',
+			});
+			const data = await res.json();
+
+			if (data.success === false) {
+				dispatch(deleteUserFailure(data.message));
+				return;
+			}
+			setTimeout(() => {
+				dispatch(deleteUserSuccess(data));
+				setIsDelete(false);
+			}, 2000);
+		} catch (error) {
+			dispatch(deleteUserFailure(error.message));
+		}
+	};
+
 	return (
 		<div className='mt-24 p-3 max-w-lg mx-auto border border-slate-200 shadow-lg rounded-lg'>
 			<h1 className='text-3xl uppercase text-center mt-7 text-slate-700 font-semibold'>
@@ -181,7 +205,12 @@ export default function Profile() {
 				</button>
 			</form>
 			<div className='flex justify-between mt-5'>
-				<span className='text-red-700 cursor-pointer'>Delete Account</span>
+				<span
+					onClick={handleDeleteUser}
+					className='text-red-700 cursor-pointer'
+				>
+					{isDelete ? 'Deleting...' : 'Delete Account'}
+				</span>
 				<span className='text-red-700 cursor-pointer'>Sign out</span>
 			</div>
 			{/* Display error messages if there are any */}

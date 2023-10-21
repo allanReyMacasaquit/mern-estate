@@ -71,3 +71,13 @@ export const updateUser = async (req, res, next) => {
 		next(errorHandler(401, 'You can only update your own account!'));
 	}
 };
+
+export const deleteUser = async (req, res, next) => {
+	try {
+		await User.findByIdAndDelete(req.params.id);
+		res.clearCookie('jwtToken');
+		res.status(200).json({ message: 'User has been deleted' });
+	} catch (error) {
+		next(errorHandler(401, 'You can only delete your own account'));
+	}
+};
