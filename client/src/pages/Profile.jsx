@@ -1,13 +1,18 @@
-import { useSelector } from 'react-redux'; // Import useSelector from 'react-redux' for accessing the Redux state.
-import { useEffect, useRef, useState } from 'react'; // Import useEffect, useRef, and useState from 'react' for managing state and side effects.
 import {
 	getDownloadURL,
 	getStorage,
 	ref,
 	uploadBytesResumable,
 } from 'firebase/storage'; // Import Firebase storage functions.
-
+import {
+	updateUserSuccess,
+	updateUserFailure,
+} from '../redux/user/userSlice.js';
+import { useSelector } from 'react-redux'; // Import useSelector from 'react-redux' for accessing the Redux state.
+import { useEffect, useRef, useState } from 'react'; // Import useEffect, useRef, and useState from 'react' for managing state and side effects.
 import { app } from '../firebase.js'; // Import the Firebase configuration.
+
+import { useDispatch } from 'react-redux';
 
 export default function Profile() {
 	const [formData, setFormData] = useState({}); // Initialize state for form data.
@@ -15,8 +20,12 @@ export default function Profile() {
 	const [filePercent, setFilePercent] = useState(0); // Initialize state for file upload progress.
 	const [file, setFile] = useState(undefined); // Initialize state for the selected file.
 	const fileRef = useRef(null); // Create a ref for the file input element.
+	const [updateSuccess, setUpdateSuccess] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [error, setError] = useState(false);
 	const { user } = useSelector((state) => state.user); // Use useSelector to access user data from the Redux state.
 	const current = user?.user?.user; // Initialize the 'current' variable with user data.
+	const dispatch = useDispatch();
 
 	const handleFileUpload = (file) => {
 		const storage = getStorage(app); // Create a reference to Firebase storage.
@@ -50,14 +59,69 @@ export default function Profile() {
 		if (file) {
 			handleFileUpload(file); // Trigger the file upload function when the 'file' state changes.
 		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [file]);
 
+	const handleChange = (e) => {
+		setFormData({ ...formData, [e.target.id]: e.target.value });
+	};
+
+	const handleSubmit = async (e) => {
+		e.preventDefault();
+		try {
+			setLoading(true);
+			const res = await fetch(`/api/user/update/${current._id}`, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify(formData),
+			});
+
+			const data = await res.json();
+			if (data.success === false) {
+				setError(true);
+				setLoading(false);
+				dispatch(updateUserFailure(data.message));
+				return;
+			}
+			setTimeout(() => {
+				dispatch(updateUserSuccess(data));
+			}, 2000);
+
+			setError(false);
+
+			setTimeout(() => {
+				setUpdateSuccess(true);
+				setLoading(false);
+			}, 2000);
+		} catch (error) {
+			dispatch(updateUserFailure(error.message));
+		}
+	};
+
+	useEffect(() => {
+		if (updateSuccess) {
+			setTimeout(() => {
+				setUpdateSuccess(false);
+			}, 3000);
+		}
+	}, [updateSuccess]);
+
+	useEffect(() => {
+		if (filePercent === 100) {
+			setTimeout(() => {
+				setFilePercent(null);
+			}, 2000);
+		}
+	}, [filePercent]);
+
 	return (
-		<div className='max-w-lg p-3 mx-auto '>
+		<div className='mt-24 p-3 max-w-lg mx-auto border border-slate-200 shadow-lg rounded-lg'>
 			<h1 className='text-3xl uppercase text-center mt-7 text-slate-700 font-semibold'>
 				profile
 			</h1>
-			<form className='flex flex-col gap-4'>
+			<form onSubmit={handleSubmit} className='flex flex-col gap-4'>
 				<input
 					onChange={(e) => setFile(e.target.files[0])} // Set the 'file' state when a file is selected.
 					type='file'
@@ -88,29 +152,52 @@ export default function Profile() {
 				</p>
 				<input
 					type='text'
+					autoComplete='true'
 					id='username'
-					placeholder='username'
+					defaultValue={current.username}
 					className='border p-3 rounded-lg'
+					onChange={handleChange}
 				/>
 				<input
 					type='email'
+					autoComplete='true'
 					id='email'
-					placeholder='email'
+					defaultValue={current.email}
 					className='border p-3 rounded-lg'
+					onChange={handleChange}
 				/>
 				<input
 					type='password'
 					id='password'
 					placeholder='password'
 					className='border p-3 rounded-lg'
+					onChange={handleChange}
 				/>
-				<button className='uppercase bg-slate-700 p-3 rounded-lg text-white hover:opacity-95 disabled:opacity-80'>
-					update
+				<button
+					disabled={loading}
+					className='uppercase bg-slate-700 p-3 rounded-lg text-white hover:opacity-95 disabled:opacity-80'
+				>
+					{loading ? 'Loading...' : 'update'}
 				</button>
 			</form>
 			<div className='flex justify-between mt-5'>
 				<span className='text-red-700 cursor-pointer'>Delete Account</span>
 				<span className='text-red-700 cursor-pointer'>Sign out</span>
+			</div>
+			{/* Display error messages if there are any */}
+			<div className='flex justify-center '>
+				{error && (
+					<p className='text-red-500 mt-5 text-lg p-2 rounded-lg uppercase  shadow-sm shadow-slate-500 font-bold'>
+						{error}
+					</p>
+				)}
+			</div>
+			<div className='flex justify-center '>
+				{updateSuccess && (
+					<p className='text-green-700 mt-5 text-lg p-2 rounded-lg uppercase  shadow-sm shadow-slate-500 font-bold'>
+						update successfully!
+					</p>
+				)}
 			</div>
 		</div>
 	);

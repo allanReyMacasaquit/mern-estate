@@ -7,12 +7,13 @@ import {
 	signInFailure,
 } from '../redux/user/userSlice.js';
 import OAuth from '../components/OAuth.jsx';
+import { useEffect } from 'react';
 
 export default function Signin() {
 	// State to manage form data
 	const [formData, setFormData] = useState({});
-
 	const { loading, error } = useSelector((state) => state.user);
+	const [errorPage, setErrorPage] = useState(false);
 
 	// Get a navigation function for redirects
 	const navigate = useNavigate();
@@ -46,6 +47,7 @@ export default function Signin() {
 
 			// Check if the signup was not successful
 			if (data.success === false) {
+				setErrorPage(true);
 				dispatch(signInFailure(data.message)); // Dispatch signInFailure with the error message
 				return;
 			}
@@ -62,10 +64,17 @@ export default function Signin() {
 			);
 		}
 	};
+	useEffect(() => {
+		if (errorPage) {
+			setTimeout(() => {
+				setErrorPage(false);
+			}, 1000);
+		}
+	}, [errorPage]);
 
 	return (
-		<div className='p-3 max-w-lg mx-auto'>
-			<h1 className='text-center text-3xl font-semibold my-7'>Sign In</h1>
+		<div className='mt-24 p-3 max-w-lg mx-auto border border-slate-200 shadow-lg rounded-lg'>
+			<h1 className='text-center text-3xl  my-8'>Sign In</h1>
 
 			{/* Form for user signup */}
 			<form onSubmit={handleSubmit} className='flex flex-col gap-4'>
@@ -90,6 +99,11 @@ export default function Signin() {
 				>
 					{loading ? 'Loading...' : 'Sign In'}
 				</button>
+				<div className='flex justify-center '>
+					{errorPage && (
+						<p className='text-red-500 '>Please complete the form</p>
+					)}
+				</div>
 				<OAuth />
 			</form>
 

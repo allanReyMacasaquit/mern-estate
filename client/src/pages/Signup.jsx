@@ -8,6 +8,7 @@ export default function Signup() {
 
 	// State to manage error messages
 	const [error, setError] = useState(null);
+	const [success, setSuccess] = useState(false);
 
 	// State to manage loading state
 	const [loading, setLoading] = useState(false);
@@ -48,10 +49,17 @@ export default function Signup() {
 				setLoading(false);
 				return;
 			}
+			setTimeout(() => {
+				setLoading(false);
+				setError(null); // Clear any previous error messages
+				navigate('/sign-in'); // Redirect to the sign-in page after a 2-second delay
+			}, 2000); // 5200 milliseconds is equivalent to 2 seconds
 
-			setLoading(false); // Set loading state back to false
-			setError(null); // Clear any previous error messages
-			navigate('/sign-in'); // Redirect to the sign-in page after successful signup
+			setTimeout(() => {
+				setSuccess(true);
+			}, 1000);
+
+			// Introduce a 2-second delay before navigating to the sign-in page
 		} catch (error) {
 			// Handle errors from the fetch request
 			console.error('An error occurred:', error);
@@ -96,6 +104,13 @@ export default function Signup() {
 				>
 					{loading ? 'Loading...' : 'Sign Up'}
 				</button>
+				<div className='flex justify-center'>
+					{success && (
+						<p className='text-green-800 mt-5 text-lg p-2 rounded-lg uppercase  shadow-sm shadow-slate-500 font-bold'>
+							Sign up Successfully
+						</p>
+					)}
+				</div>
 				<OAuth />
 			</form>
 
