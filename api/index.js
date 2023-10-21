@@ -5,6 +5,7 @@ import dotenv from 'dotenv'; // Dotenv is used to load environment variables fro
 import userRouter from './routes/userRouter.js'; // Import a user-related router
 import authRouter from './routes/authRouter.js'; // Import an authentication-related router
 import cookieParser from 'cookie-parser';
+import listingRouter from './routes/listingRouter.js';
 dotenv.config(); // Load environment variables from a .env file into process.env
 
 // Connect to the MongoDB database using Mongoose
@@ -32,6 +33,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRouter);
 // Use the 'userRouter' for handling routes starting with '/api/user'
 app.use('/api/user', userRouter);
+app.use('/api/listing', listingRouter);
 
 // Middleware for handling error messages
 app.use((err, req, res, next) => {
