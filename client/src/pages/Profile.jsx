@@ -9,6 +9,7 @@ import {
 	updateUserFailure,
 	deleteUserFailure,
 	deleteUserSuccess,
+	signOutUserSuccess,
 } from '../redux/user/userSlice.js';
 import { useSelector } from 'react-redux'; // Import useSelector from 'react-redux' for accessing the Redux state.
 import { useEffect, useRef, useState } from 'react'; // Import useEffect, useRef, and useState from 'react' for managing state and side effects.
@@ -139,6 +140,21 @@ export default function Profile() {
 			dispatch(deleteUserFailure(error.message));
 		}
 	};
+	const handleUserSignOut = async () => {
+		try {
+			const res = await fetch('/api/auth/signout');
+
+			const data = await res.json();
+
+			if (data.success === false) {
+				dispatch(deleteUserFailure(data.message));
+				return;
+			}
+			dispatch(signOutUserSuccess(data.message));
+		} catch (error) {
+			error.message;
+		}
+	};
 
 	return (
 		<div className='mt-24 p-3 max-w-lg mx-auto border border-slate-200 shadow-lg rounded-lg'>
@@ -211,7 +227,12 @@ export default function Profile() {
 				>
 					{isDelete ? 'Deleting...' : 'Delete Account'}
 				</span>
-				<span className='text-red-700 cursor-pointer'>Sign out</span>
+				<span
+					onClick={handleUserSignOut}
+					className='text-red-700 cursor-pointer'
+				>
+					Sign out
+				</span>
 			</div>
 			{/* Display error messages if there are any */}
 			<div className='flex justify-center '>

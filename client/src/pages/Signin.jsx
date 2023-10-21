@@ -68,7 +68,7 @@ export default function Signin() {
 		if (errorPage) {
 			setTimeout(() => {
 				setErrorPage(false);
-			}, 1000);
+			}, 2000);
 		}
 	}, [errorPage]);
 
@@ -100,9 +100,7 @@ export default function Signin() {
 					{loading ? 'Loading...' : 'Sign In'}
 				</button>
 				<div className='flex justify-center '>
-					{errorPage && (
-						<p className='text-red-500 '>Please complete the form</p>
-					)}
+					{errorPage && <p className='text-red-500 '>User not Found!</p>}
 				</div>
 				<OAuth />
 			</form>

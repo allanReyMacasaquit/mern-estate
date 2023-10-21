@@ -153,3 +153,13 @@ const generateRandomPassword = () => {
 const hashPassword = (password) => {
 	return bcryptjs.hashSync(password, 10);
 };
+
+export const signOut = async (req, res, next) => {
+	try {
+		await User.findByIdAndRemove(req.params.id);
+		res.clearCookie('jwtToken');
+		res.status(200).json({ message: 'User has been logged out' });
+	} catch (error) {
+		next(errorHandler(401, 'Unauthorized'));
+	}
+};
