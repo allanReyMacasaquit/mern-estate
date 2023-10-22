@@ -14,7 +14,7 @@ import {
 import { useSelector } from 'react-redux'; // Import useSelector from 'react-redux' for accessing the Redux state.
 import { useEffect, useRef, useState } from 'react'; // Import useEffect, useRef, and useState from 'react' for managing state and side effects.
 import { app } from '../firebase.js'; // Import the Firebase configuration.
-
+import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 export default function Profile() {
@@ -219,6 +219,11 @@ export default function Profile() {
 				>
 					{loading ? 'Loading...' : 'update'}
 				</button>
+				<Link to='/create-listing'>
+					<p className='bg-green-600 text-white p-3 rounded-lg hover:opacity-95 uppercase text-center'>
+						create listing
+					</p>
+				</Link>
 			</form>
 			<div className='flex justify-between mt-5'>
 				<span
