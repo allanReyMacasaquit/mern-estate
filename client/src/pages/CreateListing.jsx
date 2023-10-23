@@ -1,20 +1,94 @@
-import { useState } from 'react';
+import {
+	getDownloadURL,
+	getStorage,
+	ref,
+	uploadBytesResumable,
+} from 'firebase/storage';
+import { useEffect, useState } from 'react';
+import { app } from '../firebase.js';
+import { BarLoader } from 'react-spinners';
 
 const CreateListingForm = () => {
+	let [loading, setLoading] = useState(false);
+	const [files, setFiles] = useState([]);
+	const [imageUploadError, setImageUploadError] = useState(false);
 	const [formData, setFormData] = useState({
-		name: '',
-		description: '',
-		address: '',
-		regularPrice: 0,
-		discountPrice: 0,
-		bathrooms: 0,
-		bedrooms: 0,
-		furnished: false,
-		parking: false,
-		type: '',
-		offer: false,
+		// name: '',
+		// description: '',
+		// address: '',
+		// regularPrice: 0,
+		// discountPrice: 0,
+		// bathrooms: 0,
+		// bedrooms: 0,
+		// furnished: false,
+		// parking: false,
+		// type: '',
+		// offer: false,
 		imageUrls: [],
 	});
+
+	const handleImageListingUpload = () => {
+		if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
+			setLoading(true);
+			const promises = [];
+
+			for (let i = 0; i < files.length; i++) {
+				promises.push(storeImage(files[i]));
+			}
+			Promise.all(promises)
+				.then((urls) => {
+					setFormData({
+						...formData,
+						imageUrls: formData.imageUrls.concat(urls),
+					});
+					setImageUploadError(false);
+					setLoading(false);
+				})
+				.catch((err) => {
+					setImageUploadError(
+						'Image upload failed (2MB max per image size)',
+						err
+					);
+					setLoading(false);
+				});
+		} else {
+			setImageUploadError('You can only upload 6 images per listing');
+			setLoading(false);
+		}
+	};
+	const storeImage = async (file) => {
+		return new Promise((resolve, reject) => {
+			const storage = getStorage(app); // Create a reference to Firebase storage.
+			const filename = new Date().getTime() + file.name; // Generate a unique filename using the timestamp and the original file name.
+			const storageRef = ref(storage, filename); // Create a storage reference with the generated filename.
+			const uploadTask = uploadBytesResumable(storageRef, file); // Upload the file to storage using uploadBytesResumable.
+
+			uploadTask.on(
+				'state_changed',
+				(snapshot) => {
+					const progress =
+						(snapshot.bytesTransferred / snapshot.totalBytes) * 100; // Calculate the upload progress.
+					console.log(`Upload is ${progress}% done`);
+				},
+				(error) => {
+					reject(error);
+				},
+				() => {
+					console.log('Upload completed');
+					getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
+						resolve(downloadUrl);
+					});
+				}
+			);
+		});
+	};
+	useEffect(() => {
+		if (imageUploadError) {
+			setTimeout(() => {
+				setImageUploadError(false);
+			}, 4000);
+		}
+	}, [imageUploadError]);
 
 	const handleInputChange = (e) => {
 		const { name, value, type, checked } = e.target;
@@ -29,9 +103,16 @@ const CreateListingForm = () => {
 		// Handle form submission, e.g., send data to the server
 	};
 
+	const handleRemoveImage = (index) => {
+		setFormData({
+			...formData,
+			imageUrls: formData.imageUrls.filter((_, i) => i !== index),
+		});
+	};
+
 	return (
 		<main className='max-w-5xl mx-auto shadow-lg mt-5'>
-			<h1 className='bg-slate-100 drop-shadow-md tracking-widest uppercase text-center my-2 text-2xl shadow-lg p-7'>
+			<h1 className='bg-gradient-to-l from-blue-500 to-green-500 drop-shadow-md tracking-widest uppercase text-center my-2 text-2xl shadow-lg p-7'>
 				Create listings
 			</h1>
 			<form
@@ -39,7 +120,7 @@ const CreateListingForm = () => {
 				className=' bg-slate-100 flex flex-col sm:flex-row'
 			>
 				<div className='flex flex-col flex-1'>
-					<div className='md:flex'>
+					<div>
 						<div className='p-4'>
 							<div className='mt-3'>
 								<label htmlFor='name' className='text-gray-500'>
@@ -176,10 +257,11 @@ const CreateListingForm = () => {
 							The first upload image will be your cover picture (max: 6).
 						</p>
 					</div>
-					<div className='mt-2 flex items-center'>
-						<div className='flex items-center'>
+					<div className='flex items-center '>
+						<div className='flex items-center '>
 							<div>
 								<input
+									onChange={(e) => setFiles(e.target.files)}
 									id='images'
 									type='file'
 									accept='image/*'
@@ -188,19 +270,52 @@ const CreateListingForm = () => {
 								/>
 							</div>
 
-							<div className='p-5'>
+							<div className='p-2'>
 								<button
-									type='submit'
-									className='uppercase bg-gradient-to-l from-blue-500 to-green-500 hover:border-green-500 hover:shadow-lg rounded-lg hover:opacity-95'
+									onClick={handleImageListingUpload}
+									type='button'
+									className='uppercase bg-blue-500 hover:shadow-lg rounded-lg hover:opacity-95'
 								>
-									<p className='text-white p-4 rounded-lg w-full tracking-widest'>
-										Upload
+									<p className='text-white px-5 border border-gray-500 rounded-lg w-full tracking-widest'>
+										{loading ? (
+											<BarLoader
+												height={10}
+												color='white'
+												width={70}
+												loading={true}
+											/>
+										) : (
+											'Upload'
+										)}
 									</p>
 								</button>
 							</div>
 						</div>
 					</div>
 
+					<p className='text-red-700'>
+						{imageUploadError ? imageUploadError : ''}
+					</p>
+
+					{formData.imageUrls.length > 0 &&
+						formData.imageUrls.map((url, i) => (
+							<div key={url} className='mt-2'>
+								<div className='flex justify-between py-4 px-3 border border-slate-700 rounded-lg'>
+									<img
+										src={url}
+										alt='Image listing'
+										className='h-20 w-30 object-cover rounded-lg drop-shadow-2xl  border border-slate-700'
+									/>
+									<button
+										onClick={() => handleRemoveImage(i)}
+										type='button'
+										className='text-red-600 bg-red-100 h-20 w-20 hover:bg-red-300 rounded-lg hover:text-white border border-h uppercase tracking-widest'
+									>
+										delete
+									</button>
+								</div>
+							</div>
+						))}
 					<div>
 						<button
 							type='submit'
