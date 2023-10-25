@@ -27,6 +27,7 @@ export default function Profile() {
 	const [loading, setLoading] = useState(false);
 	const [isDelete, setIsDelete] = useState(false);
 	const [error, setError] = useState(false);
+	const [userListings, setUserListings] = useState([]);
 	const { user } = useSelector((state) => state.user); // Use useSelector to access user data from the Redux state.
 	const current = user?.user?.user; // Initialize the 'current' variable with user data.
 	const dispatch = useDispatch();
@@ -155,6 +156,16 @@ export default function Profile() {
 			error.message;
 		}
 	};
+	const handleShowListings = async () => {
+		try {
+			const res = await fetch(`/api/user/listings/${current._id}`);
+
+			const data = await res.json();
+			setUserListings(data);
+		} catch (error) {
+			console.log(error);
+		}
+	};
 
 	return (
 		<div className='mt-24 p-3 max-w-lg mx-auto border border-slate-200 shadow-lg rounded-lg'>
@@ -253,6 +264,65 @@ export default function Profile() {
 						update successfully!
 					</p>
 				)}
+			</div>
+			<div>
+				<button
+					type='button'
+					onClick={handleShowListings}
+					className='text-green-700 w-full uppercase'
+				>
+					show listings
+				</button>
+			</div>
+			<div>
+				<div className='flex my-4'>
+					<h1>Your listings</h1>
+					<svg
+						className='w-6 h-6 text-gray-800 dark:text-white mx-4 my-1'
+						aria-hidden='true'
+						xmlns='http://www.w3.org/2000/svg'
+						fill='none'
+						viewBox='0 0 14 8'
+					>
+						<path
+							stroke='currentColor'
+							strokeLinecap='round'
+							strokeLinejoin='round'
+							strokeWidth='2'
+							d='m1 1 5.326 5.7a.909.909 0 0 0 1.348 0L13 1'
+						/>
+					</svg>
+				</div>
+				{userListings &&
+					userListings.length > 0 &&
+					userListings.map((listing) => (
+						<>
+							<div
+								key={listing._id}
+								className='flex flex-col mt-6 bg-slate-200 rounded-lg '
+							>
+								<Link to={`/listing/${listing._id}`}>
+									<img
+										className='w-30 mt-8 object-cover py-2 relative'
+										src={listing.imageUrls[0]}
+										alt='Cover picture'
+									/>
+								</Link>
+
+								<p className='p-2 absolute truncate font-semibold tracking-widest '>
+									{listing.title}
+								</p>
+								<span className='flex justify-between capitalize p-3 hover:shadow-lg '>
+									<p className='hover:bg-green-500 border border-green-700 px-4 text-slate-600 hover:text-white inline hover:cursor-pointer  hover:shadow-green-400 rounded-lg p-1'>
+										Edit
+									</p>
+									<p className='hover:bg-orange-700 text-white bg-red-700 hover:opacity-95 inline hover:cursor-pointer  hover:shadow-red-400 rounded-lg p-1'>
+										delete
+									</p>
+								</span>
+							</div>
+						</>
+					))}
 			</div>
 		</div>
 	);
