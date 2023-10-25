@@ -1,4 +1,5 @@
 // Import necessary modules and dependencies
+import Listing from '../models/listingModel.js';
 import User from '../models/userModel.js';
 import { errorHandler } from '../utils/error.js';
 import bcryptjs from 'bcryptjs';
@@ -79,5 +80,21 @@ export const deleteUser = async (req, res, next) => {
 		res.status(200).json({ message: 'User has been deleted' });
 	} catch (error) {
 		next(errorHandler(401, 'You can only delete your own account'));
+	}
+};
+
+export const getUserListings = async (req, res, next) => {
+	try {
+		const listings = await Listing.find({ userRef: req.params.id });
+
+		if (listings.length === 0) {
+			return res
+				.status(404)
+				.json({ error: 'You can only view your own listings' });
+		}
+
+		res.status(200).json(listings);
+	} catch (error) {
+		next(errorHandler(401, 'You can only view your own listings'));
 	}
 };
