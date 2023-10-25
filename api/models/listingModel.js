@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 // Define the listing schema
 const listingSchema = new mongoose.Schema(
 	{
-		name: {
+		title: {
 			type: String,
 			required: true,
 		},
@@ -40,6 +40,10 @@ const listingSchema = new mongoose.Schema(
 			required: true,
 		},
 		type: {
+			type: String,
+			required: true,
+		},
+		category: {
 			type: String,
 			required: true,
 		},

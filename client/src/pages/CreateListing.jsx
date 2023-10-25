@@ -6,26 +6,37 @@ import {
 } from 'firebase/storage';
 import { useEffect, useState } from 'react';
 import { app } from '../firebase.js';
-import { BarLoader } from 'react-spinners';
+import { BarLoader, BeatLoader } from 'react-spinners';
+import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 
 const CreateListingForm = () => {
-	let [loading, setLoading] = useState(false);
+	const [error, setError] = useState(false);
+	const [loading, setLoading] = useState(false);
+	const [success, setSuccess] = useState(false);
+	const [createLoading, setCreateLoading] = useState(false);
 	const [files, setFiles] = useState([]);
 	const [imageUploadError, setImageUploadError] = useState(false);
 	const [formData, setFormData] = useState({
-		// name: '',
-		// description: '',
-		// address: '',
-		// regularPrice: 0,
-		// discountPrice: 0,
-		// bathrooms: 0,
-		// bedrooms: 0,
-		// furnished: false,
-		// parking: false,
-		// type: '',
-		// offer: false,
+		title: '',
+		description: '',
+		address: '',
+		regularPrice: 70,
+		discountPrice: 0,
+		bathrooms: 1,
+		bedrooms: 1,
+		furnished: false,
+		parking: false,
+		offer: false,
+		category: 'studio',
+		type: 'rent',
 		imageUrls: [],
 	});
+
+	console.log(formData);
+	const { user } = useSelector((state) => state.user);
+	const current = user?.user?.user;
+	const navigate = useNavigate();
 
 	const handleImageListingUpload = () => {
 		if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
@@ -91,17 +102,97 @@ const CreateListingForm = () => {
 	}, [imageUploadError]);
 
 	const handleInputChange = (e) => {
-		const { name, value, type, checked } = e.target;
-		setFormData({
-			...formData,
-			[name]: type === 'checkbox' ? checked : value,
-		});
+		if (
+			e.target.id === 'detached-house' ||
+			e.target.id === 'semi-detached' ||
+			e.target.id === 'apartment' ||
+			e.target.id === 'studio'
+		) {
+			setFormData({
+				...formData,
+				category: e.target.id,
+			});
+		}
+
+		if (e.target.id === 'sale' || e.target.id === 'rent') {
+			setFormData({
+				...formData,
+				type: e.target.id,
+			});
+		}
+
+		if (
+			e.target.id === 'parking' ||
+			e.target.id === 'furnished' ||
+			e.target.id === 'offer'
+		) {
+			setFormData({
+				...formData,
+				[e.target.id]: e.target.checked,
+			});
+		}
+
+		if (
+			e.target.type === 'number' ||
+			e.target.type === 'text' ||
+			e.target.type === 'textarea'
+		) {
+			setFormData({
+				...formData,
+				[e.target.id]: e.target.value,
+			});
+		}
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		// Handle form submission, e.g., send data to the server
+		if (formData.imageUrls.length < 1)
+			return setError('You must upload at least one image');
+		if (formData.regularPrice < formData.discountPrice)
+			return setError('Discounted Price must be Lower than the regular Price.');
+		try {
+			setCreateLoading(true);
+			setError(false);
+			const res = await fetch('/api/listing/create', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					...formData,
+					userRef: current._id,
+				}),
+			});
+
+			const data = await res.json();
+
+			if (data.success === false) {
+				setError(data.message);
+				setCreateLoading(false);
+				return;
+			}
+			if (data) {
+				setTimeout(() => {
+					setSuccess(true);
+					setCreateLoading(false);
+				}, 3000);
+			}
+			setTimeout(() => {
+				navigate(`/listing/${data._id}`);
+			}, 4000);
+		} catch (error) {
+			setError(error.message);
+			setCreateLoading(false);
+		}
 	};
+	useEffect(() => {
+		if (success || error) {
+			setTimeout(() => {
+				setSuccess(false);
+				setError(false);
+			}, 5000);
+		}
+	}, [success, error]);
 
 	const handleRemoveImage = (index) => {
 		setFormData({
@@ -111,8 +202,8 @@ const CreateListingForm = () => {
 	};
 
 	return (
-		<main className='max-w-5xl mx-auto shadow-lg mt-5'>
-			<h1 className='bg-gradient-to-l from-blue-500 to-green-500 drop-shadow-md tracking-widest uppercase text-center my-2 text-2xl shadow-lg p-7'>
+		<main className='max-w-6xl mx-auto shadow-lg'>
+			<h1 className='bg-gradient-to-l from-blue-500 to-green-500 drop-shadow-md tracking-widest uppercase text-center text-2xl sm:mt-5 shadow-lg p-7'>
 				Create listings
 			</h1>
 			<form
@@ -120,6 +211,50 @@ const CreateListingForm = () => {
 				className=' bg-slate-100 flex flex-col sm:flex-row'
 			>
 				<div className='flex flex-col flex-1'>
+					<div className='flex justify-between items-center p-4'>
+						<span className='mt-10 pr-3 inline-block h-[60px] min-h-[1em] bg-gradient-to-l from-blue-500 to-green-500 rounded-lg'></span>
+						<div className='flex gap-2 mt-10'>
+							<input
+								onChange={handleInputChange}
+								checked={formData.category === 'detached-house'}
+								type='checkbox'
+								id='detached-house'
+								className='w-5'
+							/>
+							<span className='text-sm'>Detached House</span>
+						</div>
+						<div className='flex gap-2 mt-10'>
+							<input
+								onChange={handleInputChange}
+								checked={formData.category === 'semi-detached'}
+								type='checkbox'
+								id='semi-detached'
+								className='w-5'
+							/>
+							<span className='text-sm'>Semi-Detached</span>
+						</div>
+						<div className='flex gap-2 mt-10'>
+							<input
+								onChange={handleInputChange}
+								checked={formData.category === 'apartment'}
+								type='checkbox'
+								id='apartment'
+								className='w-5'
+							/>
+							<span className='text-sm'>Apartment</span>
+						</div>
+						<div className='flex gap-2 mt-10'>
+							<input
+								onChange={handleInputChange}
+								checked={formData.category === 'studio'}
+								type='checkbox'
+								id='studio'
+								className='w-5'
+							/>
+							<span className='text-sm'>Studio</span>
+						</div>
+						<span className='mt-10 pr-3 inline-block h-[60px] min-h-[1em] bg-gradient-to-l from-blue-500 to-green-500 rounded-lg'></span>
+					</div>
 					<div>
 						<div className='p-4'>
 							<div className='mt-3'>
@@ -128,11 +263,11 @@ const CreateListingForm = () => {
 								</label>
 								<input
 									type='text'
-									id='name'
-									name='name'
+									id='title'
+									name='title'
 									maxLength={32}
 									minLength={10}
-									placeholder='type your name here...'
+									placeholder='type your title here...'
 									defaultValue={formData.name}
 									onChange={handleInputChange}
 									required
@@ -148,7 +283,7 @@ const CreateListingForm = () => {
 									id='description'
 									name='description'
 									placeholder='type your description here...'
-									defaultValue={formData.name}
+									defaultValue={formData.description}
 									onChange={handleInputChange}
 									required
 									className='p-2 border border-gray-700 rounded-lg w-full'
@@ -156,44 +291,78 @@ const CreateListingForm = () => {
 							</div>
 							<div className='mt-2'>
 								<label htmlFor='name' className='text-gray-500'>
-									Addrees
+									Address
 								</label>
 								<input
 									type='text'
 									id='address'
 									name='address'
 									placeholder='type your address here...'
-									defaultValue={formData.name}
+									defaultValue={formData.address}
 									onChange={handleInputChange}
 									required
 									className='p-2 border border-gray-700 rounded-lg w-full'
 								/>
 							</div>
+							<div className='flex items-center gap-4'>
+								<div className='flex gap-2 mt-10'>
+									<input
+										onChange={handleInputChange}
+										checked={formData.type === 'sale'}
+										type='checkbox'
+										id='sale'
+										className='w-5'
+									/>
+									<span>Sell</span>
+								</div>
+								<span className='mt-10 pr-3 inline-block h-[40px] min-h-[1em] bg-gradient-to-l from-blue-500 to-green-500 rounded-lg'></span>
+								<div className='flex gap-2 mt-10'>
+									<input
+										onChange={handleInputChange}
+										checked={formData.type === 'rent'}
+										type='checkbox'
+										id='rent'
+										className='w-5'
+									/>
+									<span>Rent</span>
+								</div>
+							</div>
 							<div className='flex gap-2 mt-10'>
-								<input type='checkbox' id='sale' className='w-5' />
-								<span>Sell</span>
-							</div>
-							<div className='flex gap-2 mt-3'>
-								<input type='checkbox' id='rent' className='w-5' />
-								<span>Rent</span>
-							</div>
-							<div className='flex gap-2 mt-3'>
-								<input type='checkbox' id='furnished' className='w-5' />
+								<input
+									onChange={handleInputChange}
+									checked={formData.furnished}
+									type='checkbox'
+									id='furnished'
+									className='w-5'
+								/>
 								<span>Furnished</span>
 							</div>
 							<div className='flex gap-2 mt-3'>
-								<input type='checkbox' id='parking' className='w-5' />
+								<input
+									onChange={handleInputChange}
+									checked={formData.parking}
+									type='checkbox'
+									id='parking'
+									className='w-5'
+								/>
 								<span>Parking Spot</span>
 							</div>
 							<div className='flex gap-2 mt-3'>
-								<input type='checkbox' id='offer' className='w-5' />
+								<input
+									onChange={handleInputChange}
+									checked={formData.offer}
+									type='checkbox'
+									id='offer'
+									className='w-5'
+								/>
 								<span>Offer</span>
 							</div>
 							<div className='flex flex-wrap gap-5 items-center '>
 								<div className='flex gap-2 mt-8'>
 									<input
+										onChange={handleInputChange}
+										value={formData.bedrooms}
 										type='number'
-										defaultValue={0}
 										id='bedrooms'
 										min={1}
 										max={10}
@@ -205,52 +374,62 @@ const CreateListingForm = () => {
 								</div>
 								<div className='flex gap-2 mt-8'>
 									<input
+										onChange={handleInputChange}
+										value={formData.bathrooms}
 										type='number'
-										defaultValue={0}
 										id='bathrooms'
 										min={1}
 										max={10}
 										className='w-12 h-12 text-center border border-gray-700 rounded-lg  shadow-lg'
 									/>
-									<span className='mt-2 text-sm text-gray-600 p-2'>Bath/s</span>
+									<span className='mt-2 text-sm text-gray-600 p-2'>
+										Bathroom/s
+									</span>
 								</div>
 							</div>
 							<div className='flex items-center'>
-								<div className=' mt-5'>
-									<input
-										type='number'
-										defaultValue={0}
-										id='regular-price'
-										min={500000}
-										max={3000000}
-										className='w-24 h-12 text-center border border-gray-700 rounded-lg  shadow-lg'
-									/>
+								<div className='flex items-center'>
+									<div className=' mt-5'>
+										<input
+											disabled={formData.offer}
+											onChange={handleInputChange}
+											value={formData.regularPrice}
+											min={70}
+											max={1000000}
+											type='number'
+											id='regularPrice'
+											className='w-24 h-12 text-center text-lg border border-gray-700 rounded-lg  shadow-lg'
+										/>
+									</div>
+									<div className='mt-5 p-3'>
+										<p className='text-sm text-red-800'>Regular Price</p>
+										<span>($/month)</span>
+									</div>
 								</div>
-								<div className='mt-5 p-3'>
-									<p className='text-sm text-red-800'>Regular Price</p>
-									<span>($/month)</span>
-								</div>
-							</div>
-							<div className='flex items-center'>
-								<div className=' mt-5'>
-									<input
-										type='number'
-										defaultValue={0}
-										id='discounted-price'
-										min={500000}
-										max={3000000}
-										className='w-24 h-12 text-center border border-gray-700 rounded-lg  shadow-lg'
-									/>
-								</div>
-								<div className='mt-5 p-3'>
-									<p className='text-sm text-red-800'>Discounted Price</p>
-									<span>($/month)</span>
-								</div>
+								{formData.offer && (
+									<div className='flex items-center '>
+										<div className=' mt-5'>
+											<input
+												onChange={handleInputChange}
+												value={formData.discountPrice}
+												min={0}
+												max={3000000}
+												type='number'
+												id='discountPrice'
+												className='w-24 h-12 text-center bg-orange-400 opacity-90 text-xl text-white border border-gray-700 rounded-lg  shadow-lg'
+											/>
+										</div>
+										<div className='mt-5 p-3'>
+											<p className='text-sm text-red-800'>Discounted Price</p>
+											<span>($/month)</span>
+										</div>
+									</div>
+								)}
 							</div>
 						</div>
 					</div>
 				</div>
-				<div className='p-4 mt-2 sm:mt-8'>
+				<div className='p-4 mt-2 sm:mt-8 flex-1'>
 					<div className='flex items-center'>
 						<h1 className='font-semibold'>Images:</h1>
 						<p className='p-2 font-light text-gray-700'>
@@ -272,6 +451,7 @@ const CreateListingForm = () => {
 
 							<div className='p-2'>
 								<button
+									disabled={loading}
 									onClick={handleImageListingUpload}
 									type='button'
 									className='uppercase bg-blue-500 hover:shadow-lg rounded-lg hover:opacity-95'
@@ -311,18 +491,35 @@ const CreateListingForm = () => {
 										type='button'
 										className='text-red-600 bg-red-100 h-20 w-20 hover:bg-red-300 rounded-lg hover:text-white border border-h uppercase tracking-widest'
 									>
-										delete
+										<p className='text-sm uppercase'>delete</p>
 									</button>
 								</div>
 							</div>
 						))}
 					<div>
 						<button
+							disabled={createLoading}
 							type='submit'
 							className='uppercase mt-4  border w-full bg-green-600 text-white text-center p-3 rounded-lg hover:opacity-95 disabled:opacity-75'
 						>
-							<div className='tracking-widest'>Create listings</div>
+							<div className='tracking-widest'>
+								{createLoading ? (
+									<BeatLoader color='white' />
+								) : (
+									'Create Listing'
+								)}
+							</div>
 						</button>
+					</div>
+					<div className='text-center'>
+						{error && <p className='mt-5 text-red-700'>{error}</p>}
+					</div>
+					<div className='text-center'>
+						{success && (
+							<p className='mt-5 font-semibold text-lg text-green-700'>
+								Listing has been successfully created!
+							</p>
+						)}
 					</div>
 				</div>
 			</form>
