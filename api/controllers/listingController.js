@@ -67,3 +67,20 @@ export const editListing = async (req, res, next) => {
 		next(errorHandler(500, 'Server error'));
 	}
 };
+
+export const getListing = async (req, res, next) => {
+	try {
+		const listing = await Listing.findById(req.params.id);
+
+		if (!listing) {
+			return res.status(404).json({ message: 'Listing not found' });
+		}
+
+		res.status(200).json(listing);
+	} catch (error) {
+		res
+			.status(500)
+			.json({ message: 'An error occurred while fetching the listing' });
+		next(error);
+	}
+};

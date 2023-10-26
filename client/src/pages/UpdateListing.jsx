@@ -8,9 +8,9 @@ import { useEffect, useState } from 'react';
 import { app } from '../firebase.js';
 import { BarLoader, BeatLoader } from 'react-spinners';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const CreateListingForm = () => {
+const UpdateListing = () => {
 	const [error, setError] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
@@ -33,10 +33,24 @@ const CreateListingForm = () => {
 		imageUrls: [],
 	});
 
-	console.log(formData);
 	const { user } = useSelector((state) => state.user);
 	const current = user?.user?.user;
 	const navigate = useNavigate();
+	const params = useParams();
+
+	useEffect(() => {
+		const fetchListingId = async () => {
+			const listingId = params.id;
+			const res = await fetch(`/api/listing/get/${listingId}`);
+			const data = await res.json();
+
+			if (data.success === false) {
+				console.log(data.error);
+			}
+			setFormData(data);
+		};
+		fetchListingId();
+	}, [params]);
 
 	const handleImageListingUpload = () => {
 		if (files.length > 0 && files.length + formData.imageUrls.length < 7) {
@@ -93,6 +107,7 @@ const CreateListingForm = () => {
 			);
 		});
 	};
+
 	useEffect(() => {
 		if (imageUploadError) {
 			setTimeout(() => {
@@ -153,7 +168,7 @@ const CreateListingForm = () => {
 		try {
 			setCreateLoading(true);
 			setError(false);
-			const res = await fetch('/api/listing/create', {
+			const res = await fetch(`/api/listing/edit/${params.id}`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -204,7 +219,7 @@ const CreateListingForm = () => {
 	return (
 		<main className='max-w-6xl mx-auto shadow-lg'>
 			<h1 className='bg-gradient-to-l from-blue-500 to-green-500 drop-shadow-md tracking-widest uppercase text-center text-2xl sm:mt-5 shadow-lg p-7'>
-				Create listings
+				Update Listings
 			</h1>
 			<form
 				onSubmit={handleSubmit}
@@ -258,30 +273,28 @@ const CreateListingForm = () => {
 					<div>
 						<div className='p-4'>
 							<div className='mt-3'>
-								<label htmlFor='name' className='text-gray-500'>
-									Name
-								</label>
+								<label className='text-gray-500'>Title</label>
 								<input
 									type='text'
 									id='title'
 									name='title'
-									maxLength={32}
+									maxLength={60}
 									minLength={10}
 									placeholder='type your title here...'
-									defaultValue={formData.title}
+									value={formData.title}
 									onChange={handleInputChange}
 									required
 									className='p-2 border border-gray-700 rounded-lg w-full'
 								/>
 							</div>
 							<div className='mt-3'>
-								<label htmlFor='name' className='text-gray-500'>
-									Description
-								</label>
+								<label className='text-gray-500'>Description</label>
 								<textarea
 									type='text'
 									id='description'
 									name='description'
+									maxLength={200}
+									minLength={10}
 									placeholder='type your description here...'
 									defaultValue={formData.description}
 									onChange={handleInputChange}
@@ -290,13 +303,13 @@ const CreateListingForm = () => {
 								/>
 							</div>
 							<div className='mt-2'>
-								<label htmlFor='name' className='text-gray-500'>
-									Address
-								</label>
+								<label className='text-gray-500'>Address</label>
 								<input
-									type='text'
+									type='address'
 									id='address'
 									name='address'
+									maxLength={60}
+									minLength={10}
 									placeholder='type your address here...'
 									defaultValue={formData.address}
 									onChange={handleInputChange}
@@ -506,7 +519,7 @@ const CreateListingForm = () => {
 								{createLoading ? (
 									<BeatLoader color='white' />
 								) : (
-									'Create Listing'
+									'Update Listing'
 								)}
 							</div>
 						</button>
@@ -527,4 +540,4 @@ const CreateListingForm = () => {
 	);
 };
 
-export default CreateListingForm;
+export default UpdateListing;

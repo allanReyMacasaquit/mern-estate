@@ -318,35 +318,36 @@ export default function Profile() {
 				{userListings &&
 					userListings.length > 0 &&
 					userListings.map((listing) => (
-						<>
-							<div
-								key={listing._id}
-								className='flex flex-col mt-6 bg-slate-200 rounded-lg '
-							>
-								<Link to={`/listing/${listing._id}`}>
-									<img
-										className='w-30 mt-8 object-cover py-2 relative'
-										src={listing.imageUrls[0]}
-										alt='Cover picture'
-									/>
-								</Link>
+						<div
+							key={listing._id}
+							className='flex flex-col mt-6 bg-slate-200 rounded-lg '
+						>
+							<Link to={`/listing/${listing._id}`}>
+								<img
+									className='w-30 mt-8 object-cover py-2 relative'
+									src={listing.imageUrls[0]}
+									alt='Cover picture'
+								/>
+							</Link>
 
-								<p className='p-2 absolute truncate font-semibold tracking-widest '>
-									{listing.title}
-								</p>
-								<span className='flex justify-between capitalize p-3 hover:shadow-lg '>
+							<p className='p-2 absolute truncate font-semibold tracking-widest '>
+								{listing.title}
+							</p>
+							<span className='flex justify-between capitalize p-3 hover:shadow-lg '>
+								<Link to={`/update-listing/${listing._id}`}>
 									<p className='hover:bg-green-500 border border-green-700 px-4 text-slate-600 hover:text-white inline hover:cursor-pointer  hover:shadow-green-400 rounded-lg p-1'>
 										Edit
 									</p>
-									<p
-										onClick={() => handleListingDelete(listing._id)}
-										className='hover:bg-orange-700 text-white bg-red-700 hover:opacity-95 inline hover:cursor-pointer  hover:shadow-red-400 rounded-lg p-1'
-									>
-										delete
-									</p>
-								</span>
-							</div>
-						</>
+								</Link>
+
+								<p
+									onClick={() => handleListingDelete(listing._id)}
+									className='hover:bg-orange-700 text-white bg-red-700 hover:opacity-95 inline hover:cursor-pointer  hover:shadow-red-400 rounded-lg p-1'
+								>
+									delete
+								</p>
+							</span>
+						</div>
 					))}
 			</div>
 		</div>
