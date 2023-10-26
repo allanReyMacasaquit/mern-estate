@@ -167,6 +167,28 @@ export default function Profile() {
 		}
 	};
 
+	const handleListingDelete = async (listingId) => {
+		try {
+			const res = await fetch(`/api/listing/delete/${listingId}`, {
+				method: 'DELETE',
+				headers: {
+					'Content-Type': 'application/json',
+				},
+			});
+
+			const data = await res.json();
+			if (data.success === false) {
+				console.log(data.error);
+				return;
+			}
+			setUserListings((prev) =>
+				prev.filter((listing) => listing._id !== listingId)
+			);
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
 	return (
 		<div className='mt-24 p-3 max-w-lg mx-auto border border-slate-200 shadow-lg rounded-lg'>
 			<h1 className='text-3xl uppercase text-center mt-7 text-slate-700 font-semibold'>
@@ -236,7 +258,7 @@ export default function Profile() {
 					</p>
 				</Link>
 			</form>
-			<div className='flex justify-between mt-5'>
+			<div className='flex justify-between px-3 mt-5'>
 				<span
 					onClick={handleDeleteUser}
 					className='text-red-700 cursor-pointer'
@@ -265,7 +287,7 @@ export default function Profile() {
 					</p>
 				)}
 			</div>
-			<div>
+			<div className='shadow-lg rounded-lg'>
 				<button
 					type='button'
 					onClick={handleShowListings}
@@ -316,7 +338,10 @@ export default function Profile() {
 									<p className='hover:bg-green-500 border border-green-700 px-4 text-slate-600 hover:text-white inline hover:cursor-pointer  hover:shadow-green-400 rounded-lg p-1'>
 										Edit
 									</p>
-									<p className='hover:bg-orange-700 text-white bg-red-700 hover:opacity-95 inline hover:cursor-pointer  hover:shadow-red-400 rounded-lg p-1'>
+									<p
+										onClick={() => handleListingDelete(listing._id)}
+										className='hover:bg-orange-700 text-white bg-red-700 hover:opacity-95 inline hover:cursor-pointer  hover:shadow-red-400 rounded-lg p-1'
+									>
 										delete
 									</p>
 								</span>
