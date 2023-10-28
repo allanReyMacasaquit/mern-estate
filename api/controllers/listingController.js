@@ -81,6 +81,5 @@ export const getListing = async (req, res, next) => {
 		res
 			.status(500)
 			.json({ message: 'An error occurred while fetching the listing' });
-		next(error);
 	}
 };

@@ -27,6 +27,7 @@ export default function Profile() {
 	const [loading, setLoading] = useState(false);
 	const [isDelete, setIsDelete] = useState(false);
 	const [error, setError] = useState(false);
+	const [showListingError, setShowListingEror] = useState(false);
 	const [userListings, setUserListings] = useState([]);
 	const { user } = useSelector((state) => state.user); // Use useSelector to access user data from the Redux state.
 	const current = user?.user?.user; // Initialize the 'current' variable with user data.
@@ -161,6 +162,11 @@ export default function Profile() {
 			const res = await fetch(`/api/user/listings/${current._id}`);
 
 			const data = await res.json();
+			if (data.success === false) {
+				setShowListingEror(data.message);
+				return;
+			}
+			setShowListingEror(false);
 			setUserListings(data);
 		} catch (error) {
 			console.log(error);
@@ -295,6 +301,9 @@ export default function Profile() {
 				>
 					show listings
 				</button>
+			</div>
+			<div className='flex justify-center text-red-700 tracking-widest'>
+				{showListingError && <p>{showListingError}: You must sign-in!</p>}
 			</div>
 			<div>
 				<div className='flex my-4'>

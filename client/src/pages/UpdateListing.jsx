@@ -193,7 +193,7 @@ const UpdateListing = () => {
 				}, 3000);
 			}
 			setTimeout(() => {
-				navigate(`/listing/${data._id}`);
+				navigate(`/listing/${params.id}`);
 			}, 4000);
 		} catch (error) {
 			setError(error.message);
