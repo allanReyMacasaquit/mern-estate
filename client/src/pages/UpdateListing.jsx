@@ -293,7 +293,7 @@ const UpdateListing = () => {
 									type='text'
 									id='description'
 									name='description'
-									maxLength={200}
+									maxLength={500}
 									minLength={10}
 									placeholder='type your description here...'
 									defaultValue={formData.description}

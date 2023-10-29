@@ -297,13 +297,19 @@ export default function Profile() {
 				<button
 					type='button'
 					onClick={handleShowListings}
-					className='text-green-700 w-full uppercase'
+					className='text-green-700 w-full uppercase mb-4'
 				>
 					show listings
 				</button>
 			</div>
-			<div className='flex justify-center text-red-700 tracking-widest'>
-				{showListingError && <p>{showListingError}: You must sign-in!</p>}
+			<div className='flex justify-center mt-2 text-red-700 tracking-widest'>
+				{showListingError && (
+					<Link to='/sign-in'>
+						<p className='hover:cursor-pointer hover:underline'>
+							{showListingError}: You must sign-in!
+						</p>
+					</Link>
+				)}
 			</div>
 			<div>
 				<div className='flex my-4'>
