@@ -1,13 +1,36 @@
 import { FaSearch } from 'react-icons/fa';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useEffect, useState } from 'react';
 
 export default function Header() {
+	const [searchTerm, setSearchTerm] = useState('');
 	const user = useSelector((state) => state.user);
 	const current = user?.user?.user?.user;
 
+	const navigate = useNavigate();
+
+	const handleSearchSubmit = (e) => {
+		e.preventDefault();
+
+		const urlParams = new URLSearchParams(window.location.search);
+		urlParams.set('searchTerm', searchTerm);
+
+		const searchQuery = urlParams.toString();
+		navigate(`/search?${searchQuery}`);
+	};
+
+	useEffect(() => {
+		const urlParams = new URLSearchParams(location.search);
+		const searchTermFromURL = urlParams.get('searchTerm');
+
+		if (searchTermFromURL) {
+			setSearchTerm(searchTermFromURL);
+		}
+	}, []);
+
 	return (
-		<header className='bg-slate-200 shadow-lg static'>
+		<header className='bg-slate-200 shadow-lg'>
 			<div className='flex justify-between items-center max-w-6xl mx-auto p-3'>
 				<Link to='/'>
 					<h1 className='font-bold text-sm sm:text-xl flex flex-wrap cursor-pointer'>
@@ -16,14 +39,21 @@ export default function Header() {
 					</h1>
 				</Link>
 
-				<form className='bg-slate-100 rounded-lg flex items-center p-1 lg:p-2'>
+				<form
+					onSubmit={handleSearchSubmit}
+					className='bg-slate-100 rounded-lg flex items-center p-1 lg:p-2'
+				>
 					<input
+						value={searchTerm}
+						onChange={(e) => setSearchTerm(e.target.value)}
 						name='search'
 						className='bg-transparent focus:outline-none w-24 sm:w-64'
 						type='text'
 						placeholder='Search...'
 					/>
-					<FaSearch className='text-slate-600 cursor-pointer' />
+					<button>
+						<FaSearch className='text-slate-600 cursor-pointer' />
+					</button>
 				</form>
 				<ul className=' flex justify-center items-center gap-7'>
 					<Link to='/'>
@@ -48,7 +78,14 @@ export default function Header() {
 									/>
 
 									{current?.username && (
-										<span className='mx-3'>{current?.username}</span>
+										<span className='mx-1 uppercase'>
+											{current.username
+												.split(' ') // Split the full name into an array of words
+												.map((word, index) =>
+													index === 0 ? word.charAt(0) : word
+												) // Keep the first character of the first word and the complete last name
+												.join('')}
+										</span>
 									)}
 								</div>
 							) : (
