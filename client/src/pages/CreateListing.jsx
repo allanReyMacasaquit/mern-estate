@@ -33,7 +33,6 @@ const CreateListingForm = () => {
 		imageUrls: [],
 	});
 
-	console.log(formData);
 	const { user } = useSelector((state) => state.user);
 	const current = user?.user?.user;
 	const navigate = useNavigate();
@@ -265,7 +264,7 @@ const CreateListingForm = () => {
 									type='text'
 									id='title'
 									name='title'
-									maxLength={32}
+									maxLength={50}
 									minLength={10}
 									placeholder='type your title here...'
 									defaultValue={formData.title}

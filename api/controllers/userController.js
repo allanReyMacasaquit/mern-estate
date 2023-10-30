@@ -98,3 +98,21 @@ export const getUserListings = async (req, res, next) => {
 		next(errorHandler(401, 'You can only view your own listings'));
 	}
 };
+
+export const getUser = async (req, res, next) => {
+	try {
+		// Find the user by ID using the User model
+		const user = await User.findById(req.params.id);
+
+		// If the user doesn't exist, return a 404 error
+		if (!user) return next(errorHandler(404, 'User not found'));
+
+		// Remove the password field from the user document (for security)
+		const { password: pass, ...rest } = user._doc;
+
+		// Send a success response with the user data (excluding the password)
+		res.status(200).json(rest);
+	} catch (error) {
+		next(error);
+	}
+};

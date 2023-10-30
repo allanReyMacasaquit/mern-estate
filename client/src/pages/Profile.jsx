@@ -166,6 +166,7 @@ export default function Profile() {
 				setShowListingEror(data.message);
 				return;
 			}
+
 			setShowListingEror(false);
 			setUserListings(data);
 		} catch (error) {
@@ -302,6 +303,7 @@ export default function Profile() {
 					show listings
 				</button>
 			</div>
+
 			<div className='flex justify-center mt-2 text-red-700 tracking-widest'>
 				{showListingError && (
 					<Link to='/sign-in'>
