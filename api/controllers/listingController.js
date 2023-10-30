@@ -83,3 +83,71 @@ export const getListing = async (req, res, next) => {
 			.json({ message: 'An error occurred while fetching the listing' });
 	}
 };
+
+export const getListings = async (req, res, next) => {
+	try {
+		// This is an asynchronous function that handles HTTP requests.
+
+		// Parse limit and startIndex from request query parameters, or use default values if not provided.
+		const limit = parseInt(req.query.limit) || 9;
+		const startIndex = parseInt(req.query.startIndex) || 0;
+
+		// Parse and handle optional query parameters: offer, furnished, parking, type, and category.
+		let offer = req.query.offer;
+		if (offer === undefined || offer === 'false') {
+			// If 'offer' is not provided or set to 'false', create a filter to include listings with 'false' or 'true' values.
+			offer = { $in: [false, true] };
+		}
+
+		let furnished = req.query.furnished;
+		if (furnished === undefined || furnished === 'false') {
+			// Similar to 'offer', create a filter for 'furnished' to include listings with 'false' or 'true' values.
+			furnished = { $in: [false, true] };
+		}
+
+		let parking = req.query.parking;
+		if (parking === undefined || parking === 'false') {
+			// Handle 'parking' in a similar manner, creating a filter for 'false' or 'true' values.
+			parking = { $in: [false, true] };
+		}
+
+		let type = req.query.type;
+		if (type === undefined || type === 'all') {
+			// If 'type' is not provided or set to 'all', filter for listings with 'sale' or 'rent' types.
+			type = { $in: ['sale', 'rent'] };
+		}
+
+		let category = req.query.category;
+		if (category === undefined || category === 'all') {
+			// For 'category', filter for specific types of listings: detached-house, semi-detached, apartment, or studio.
+			category = {
+				$in: ['detached-house', 'semi-detached', 'apartment', 'studio'],
+			};
+		}
+
+		// Parse search term, sort, and order by query parameters or use default values.
+		const searchTerm = req.query.searchTerm || '';
+		const sort = req.query.sort || 'createdAt';
+		const order = req.query.order || 'desc';
+
+		// Perform a database query to find listings based on the provided criteria.
+		const listings = await Listing.find({
+			title: { $regex: searchTerm, $options: 'i' },
+			offer,
+			furnished,
+			parking,
+			type,
+			category,
+		})
+			.sort({ [sort]: order })
+			.limit(limit)
+			.skip(startIndex);
+
+		// Send a JSON response with the retrieved listings.
+		res.status(200).json(listings);
+	} catch (error) {
+		// If any errors occur during the execution, this block handles them.
+		// It invokes the 'next' middleware function with an error message using 'errorHandler'.
+		next(errorHandler(404, 'Listings cannot find'));
+	}
+};

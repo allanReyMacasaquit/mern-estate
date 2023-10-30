@@ -98,7 +98,7 @@ export default function Listing() {
 						</Swiper>
 					)}
 				</div>
-				<div className='fixed top-[13%] right-[3%] z-10 border rounded-full w-12 h-12 flex justify-center items-center bg-slate-100 cursor-pointer'>
+				<div className='fixed top-[10%] right-[20%] z-10 border rounded-full w-12 h-12 flex flex-col justify-center items-center bg-slate-100 cursor-pointer'>
 					<FaShare
 						className='text-slate-500'
 						onClick={() => {
@@ -111,7 +111,7 @@ export default function Listing() {
 					/>
 				</div>
 				{copied && (
-					<p className='fixed top-[23%] right-[5%] z-10 rounded-md bg-slate-100 p-2'>
+					<p className='fixed top-[16%] right-[20%] z-10 rounded-md bg-slate-100 p-2'>
 						Link copied!
 					</p>
 				)}
@@ -132,15 +132,17 @@ export default function Listing() {
 								{listing.address}
 							</p>
 							<div className='flex gap-10'>
-								<p className='bg-red-900 w-full px-10 flex items-center text-white text-center p-1 rounded-md'>
+								<p className='bg-red-900 w-full px-10 flex items-center tracking-widest text-white text-center p-1 rounded-md'>
 									{listing.type === 'rent' ? 'For Rent' : 'For Sale'}
 								</p>
-								<div className='bg-green-900 gap-2 w-full px-10 flex items-center text-white text-center p-1 rounded-md'>
-									{listing.offer && (
-										<p>${listing.regularPrice - listing.discountPrice}</p>
-									)}
-									<span>OFF</span>
-								</div>
+								{listing.offer && (
+									<div className='bg-green-900 gap-2 w-full px-10 flex items-center text-white text-center p-1 rounded-md'>
+										<p className='tracking-widest'>
+											${listing.regularPrice - listing.discountPrice}
+											<span className='m-1'>OFF</span>
+										</p>
+									</div>
+								)}
 							</div>
 
 							<ul className='text-green-900 mt-6 font-semibold text-sm flex flex-wrap items-center gap-10 '>
