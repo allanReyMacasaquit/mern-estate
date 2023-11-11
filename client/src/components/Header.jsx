@@ -63,14 +63,14 @@ export default function Header() {
 							{current ? (
 								<div className='flex justify-center items-center'>
 									<img
-										className='rounded-full object-cover h-10 w-10'
+										className='rounded-full object-cover mr-2 h-10 w-10'
 										src={current?.photo}
 										alt='profile'
 										title='profile'
 									/>
 
 									{current?.username && (
-										<span className='mx-1 uppercase'>
+										<span className='mr-4 capitalize'>
 											{current.username
 												.split(' ') // Split the full name into an array of words
 												.map((word, index) =>

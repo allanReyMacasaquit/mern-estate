@@ -11,6 +11,9 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
 const CreateListingForm = () => {
+	useEffect(() => {
+		window.scrollTo(0, 0);
+	}, []);
 	const [error, setError] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [success, setSuccess] = useState(false);
@@ -258,7 +261,7 @@ const CreateListingForm = () => {
 						<div className='p-4'>
 							<div className='mt-3'>
 								<label htmlFor='name' className='text-gray-500'>
-									Name
+									Title
 								</label>
 								<input
 									type='text'

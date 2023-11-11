@@ -18,6 +18,9 @@ import { Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 
 export default function Profile() {
+	useEffect(() => {
+		window.scrollTo(0, 0);
+	}, []);
 	const [formData, setFormData] = useState({}); // Initialize state for form data.
 	const [fileUploadError, setFileUploadError] = useState(false); // Initialize state for file upload errors.
 	const [filePercent, setFilePercent] = useState(0); // Initialize state for file upload progress.
@@ -32,6 +35,7 @@ export default function Profile() {
 	const { user } = useSelector((state) => state.user); // Use useSelector to access user data from the Redux state.
 	const current = user?.user?.user; // Initialize the 'current' variable with user data.
 	const dispatch = useDispatch();
+	const [createListing, setCreateListing] = useState(false);
 
 	const handleFileUpload = (file) => {
 		const storage = getStorage(app); // Create a reference to Firebase storage.
@@ -55,6 +59,7 @@ export default function Profile() {
 				// Upload completed successfully.
 				console.log('Upload completed');
 				getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
+					setFileUploadError(false);
 					setFormData({ ...formData, photo: downloadUrl }); // Set the 'photo' property in the form data.
 				});
 			}
@@ -162,12 +167,18 @@ export default function Profile() {
 			const res = await fetch(`/api/user/listings/${current._id}`);
 
 			const data = await res.json();
+
 			if (data.success === false) {
 				setShowListingEror(data.message);
 				return;
 			}
+			if (data.length === undefined) {
+				setCreateListing(true);
+				return;
+			}
 
 			setShowListingEror(false);
+			setCreateListing(false);
 			setUserListings(data);
 		} catch (error) {
 			console.log(error);
@@ -185,7 +196,7 @@ export default function Profile() {
 
 			const data = await res.json();
 			if (data.success === false) {
-				console.log(data.error);
+				console.log(data);
 				return;
 			}
 			setUserListings((prev) =>
@@ -294,16 +305,22 @@ export default function Profile() {
 					</p>
 				)}
 			</div>
-			<div className='shadow-lg rounded-lg'>
+			<div className='shadow-lg rounded-lg bg-purple-700 mt-4'>
 				<button
 					type='button'
 					onClick={handleShowListings}
-					className='text-green-700 w-full uppercase mb-4'
+					className='text-white w-full uppercase m-3'
 				>
 					show listings
 				</button>
 			</div>
-
+			<div className='flex justify-center mt-2 text-red-700 tracking-widest'>
+				{createListing && (
+					<p className='hover:cursor-pointer hover:underline'>
+						No Listings Found: Time to Create Your First One!
+					</p>
+				)}
+			</div>
 			<div className='flex justify-center mt-2 text-red-700 tracking-widest'>
 				{showListingError && (
 					<Link to='/sign-in'>

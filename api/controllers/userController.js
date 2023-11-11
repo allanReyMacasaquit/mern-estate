@@ -87,10 +87,8 @@ export const getUserListings = async (req, res, next) => {
 	try {
 		const listings = await Listing.find({ userRef: req.params.id });
 
-		if (listings.length === 0) {
-			return res
-				.status(404)
-				.json({ error: 'You can only view your own listings' });
+		if (listings === undefined || listings.length === 0) {
+			return res.status(404).json({ error: 'You need to create a listing' });
 		}
 
 		res.status(200).json(listings);

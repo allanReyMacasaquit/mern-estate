@@ -99,7 +99,7 @@ const UpdateListing = () => {
 					reject(error);
 				},
 				() => {
-					console.log('Upload completed');
+					// console.log('Upload completed');
 					getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
 						resolve(downloadUrl);
 					});

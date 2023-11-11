@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Scrollbar, A11y } from 'swiper/modules';
 import 'swiper/css/bundle';
@@ -18,12 +18,16 @@ import ClipLoader from 'react-spinners/ClipLoader';
 import Contact from './Contact';
 
 export default function Listing() {
+	useEffect(() => {
+		window.scrollTo(0, 0);
+	}, []);
+	const [opacity, setOpacity] = useState(1);
 	const [loading, setLoading] = useState(false);
 	const [listing, setListing] = useState({});
 	const [errorMessage, setErrorMessage] = useState('');
 	const [copied, setCopied] = useState(false);
 	const [contact, setContact] = useState(false);
-	const [opacity, setOpacity] = useState(1);
+
 	const params = useParams();
 	const [images, setImages] = useState([]);
 	const { user } = useSelector((state) => state.user);
@@ -53,9 +57,17 @@ export default function Listing() {
 	}, [params.id]);
 
 	const handleButtonClick = () => {
+		setOpacity(0.5);
 		setContact(true);
-		setOpacity(0.2);
 	};
+
+	const formatPriceWithCommas = (price) => {
+		if (typeof price === 'number' && !isNaN(price)) {
+			return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+		}
+		return price; // Return the input price if it's not a number
+	};
+
 	return (
 		<main>
 			<div className='text-center flex flex-col'>
@@ -70,6 +82,7 @@ export default function Listing() {
 					</p>
 				)}
 			</div>
+
 			<div className={`relative w-full h-full opacity-${opacity * 100}`}>
 				<div className='drop-shadow-2xl shadow-lg border border-slate-700'>
 					{images.length > 0 && (
@@ -83,7 +96,7 @@ export default function Listing() {
 								<SwiperSlide key={index}>
 									<div
 										style={{
-											height: '640px',
+											height: '540px',
 											display: 'flex',
 										}}
 									>
@@ -100,6 +113,7 @@ export default function Listing() {
 				</div>
 				<div className='fixed top-[10%] right-[20%] z-10 border rounded-full w-12 h-12 flex flex-col justify-center items-center bg-slate-100 cursor-pointer'>
 					<FaShare
+						title='Copy Link Url Address'
 						className='text-slate-500'
 						onClick={() => {
 							navigator.clipboard.writeText(window.location.href);
@@ -116,20 +130,35 @@ export default function Listing() {
 					</p>
 				)}
 				<div className=' flex flex-col  lg:flex-row max-w-6xl mx-auto justify-around  '>
-					<div className='flex flex-1 flex-col  p-3 my-7 gap-4 border rounded-lg shadow-lg border-yellow-400'>
+					<div className='flex flex-1 flex-col  p-3 my-7 gap-4  '>
 						<div className=' flex flex-col items-center drop-shadow-lg justify-center'>
-							<p className='text-2xl bg-yellow-100 rounded-lg shadow-lg p-2 font-semibold'>
+							<p className='text-2xl lg:text-3xl p-2 font-semibold'>
 								{listing.title}
-							</p>
-							<p className='text-2xl mt-4 p-2 shadow-lg rounded-lg text-red-700'>
-								${listing.offer ? listing.discountPrice : listing.regularPrice}
-								{listing.type === 'rent' && ' / month'}
 							</p>
 						</div>
 						<div className=' flex flex-col items-center gap-4'>
-							<p className='flex items-center mb-4 gap-2 text-slate-600 '>
-								<FaMapMarkerAlt className='text-green-700' />
-								{listing.address}
+							<Link to={`/map?address=${listing.address}`}>
+								<p className='flex items-center gap-2 text-slate-600'>
+									<button
+										title='Copy this link and Paste on Search Map Address....'
+										type='button'
+										className=' flex text-2xl uppercase'
+										onClick={() => {
+											navigator.clipboard.writeText(listing.address);
+										}}
+									>
+										<FaMapMarkerAlt className='text-red-700 text-2xl' />
+										{listing.address}
+									</button>
+								</p>
+							</Link>
+
+							<p className='text-2xl p-2 shadow-lg rounded-lg text-red-700'>
+								$
+								{formatPriceWithCommas(
+									listing.offer ? listing.discountPrice : listing.regularPrice
+								)}
+								{listing.type === 'rent' && ' / month'}
 							</p>
 							<div className='flex gap-10'>
 								<p className='bg-red-900 w-full px-10 flex items-center tracking-widest text-white text-center p-1 rounded-md'>
@@ -169,9 +198,9 @@ export default function Listing() {
 							</ul>
 						</div>
 					</div>
-					<div className='flex-1 '>
-						<p className='text-slate-800 opacity-80 hover:opacity-100 hover:text-blue-950 sm:m-7 border border-yellow-400 rounded-lg shadow-lg tracking-widest p-4 '>
-							<span className='font-semibold text-lg'>
+					<div className='flex-1 m-2 '>
+						<p className='text-slate-800 opacity-80 hover:opacity-100 hover:text-blue-950 sm:m-7  tracking-widest p-4 '>
+							<span className='font-semibold text-2xl'>
 								Description: {listing.description}
 							</span>
 						</p>
@@ -192,7 +221,7 @@ export default function Listing() {
 					</footer>
 				</div>
 			</div>
-			<div className='absolute bottom-[25%] left-[2%] xs:left-[10%] sm:left-[15%]  md:left-[20%] lg:left-[40%] text-center'>
+			<div className='absolute bottom-[65%] left-[4%] xs:left-[10%] sm:left-[15%]  md:left-[20%] lg:left-[40%] text-center'>
 				{contact && <Contact listing={listing} />}
 			</div>
 		</main>
